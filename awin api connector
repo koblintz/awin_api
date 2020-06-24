@@ -1,0 +1,54 @@
+// this function calls the API
+
+function pullJSON() {
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var sheet = ss.getActiveSheet();
+    
+  var startRange = sheet.getRange(1,6);    // this is the row / column reference for the start date
+    var StartDate = startRange.getValue();
+  
+  var endRange = sheet.getRange(2,6);      // this is the row / column reference for the end date   
+  var EndDate = endRange.getValue();
+  
+  var tokenRange = sheet.getRange(4,6);    // this is the row / column reference for the access token 
+    var AccessToken = tokenRange.getValue(); 
+  
+
+  Logger.log(EndDate)
+  
+  var url="https://api.awin.com/advertisers/XXXXX/transactions/?startDate="+StartDate+"T00%3A00%3A00&endDate="+EndDate+"T00%3A00%3A00&timezone=UTC&dateType=transaction&accessToken="+AccessToken;       //this is the API URL - the advertiser ID needs to be updated in the bit that says XXXXX
+  
+   
+   var response = UrlFetchApp.fetch(url); // get feed
+  var dataAll = JSON.parse(response.getContentText()); // parse the JSON
+  var dataSet = dataAll;
+  
+  
+  var rows = [],
+      data;
+  
+
+  // loops the function
+  
+  for (i = 0; i < dataSet.length; i++) {
+    data = dataSet[i];
+    rows.push([data.transactionDate, data.commissionAmount.amount, data.saleAmount.amount]); //your JSON entities here
+  }
+
+  dataRange = sheet.getRange(2, 1, rows.length, 3); // 3 Denotes total number of entites
+  dataRange.setValues(rows);
+
+}
+
+
+// this function creates the menu item
+
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Get commission menu')
+      .addItem('get commission','pullJSON')
+      .addToUi();
+  
+}
